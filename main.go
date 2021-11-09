@@ -97,17 +97,17 @@ func main() {
 	// Set up router
 	router := mux.NewRouter()
 	// Set up subrouter for user functions
-	userAPI := router.PathPrefix("/user").Subrouter()
+	userRouter := router.PathPrefix("/user").Subrouter()
 	// Set up subrouter for game functions
-	gameAPI := router.PathPrefix("/game").Subrouter()
+	gameRouter := router.PathPrefix("/game").Subrouter()
 	// Set up routes for user API
-	userAPI.HandleFunc("/register", createUser)
+	userRouter.HandleFunc("/register", createUser)
 	// Set up routes for game API
-	gameAPI.HandleFunc("/new", createGame)
-	gameAPI.HandleFunc("/{game_id}", getGameState)
-	gameAPI.HandleFunc("/{game_id}/join", joinGame)
-	gameAPI.HandleFunc("/{game_id}/play", playInGame)
-	gameAPI.HandleFunc("/{game_id}/invite/{username}", inviteToGame)
+	gameRouter.HandleFunc("/new", createGame)
+	gameRouter.HandleFunc("/{game_id}", getGameState)
+	gameRouter.HandleFunc("/{game_id}/join", joinGame)
+	gameRouter.HandleFunc("/{game_id}/play", playInGame)
+	gameRouter.HandleFunc("/{game_id}/invite/{username}", inviteToGame)
 	log.Println("starting server at port 8000")
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
