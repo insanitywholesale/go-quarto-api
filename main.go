@@ -102,12 +102,12 @@ func main() {
 	gameAPI := router.PathPrefix("/game").Subrouter()
 	// Set up routes for user API
 	userAPI.HandleFunc("/register", createUser)
-	// Set up routes for user API
-	router.HandleFunc("/new", createGame)
-	router.HandleFunc("/{game_id}", getGameState)
-	router.HandleFunc("/{game_id}/join", joinGame)
-	router.HandleFunc("/{game_id}/play", playInGame)
-	router.HandleFunc("/{game_id}/invite/{username}", inviteToGame)
+	// Set up routes for game API
+	gameAPI.HandleFunc("/new", createGame)
+	gameAPI.HandleFunc("/{game_id}", getGameState)
+	gameAPI.HandleFunc("/{game_id}/join", joinGame)
+	gameAPI.HandleFunc("/{game_id}/play", playInGame)
+	gameAPI.HandleFunc("/{game_id}/invite/{username}", inviteToGame)
 	log.Println("starting server at port 8000")
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
