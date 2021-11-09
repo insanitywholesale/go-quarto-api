@@ -3,11 +3,10 @@
 adise ergasia
 
 # usage
-how to use this
+how to use with curl
 
 ## register user
-using curl
-
+run:
 ```bash
 curl -X POST\
 	-H "Content-Type: application/json"\
@@ -18,4 +17,15 @@ curl -X POST\
 returns:
 ```json
 {"username":"inherently","user_id":"G8boeMc7g"}
+```
+
+## create game
+run:
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"user_id": "G8boeMc7g"}' localhost:8000/game/new
+```
+
+returns:
+```json
+{"game_id":"NvFtm757g","players":[{"username":"","user_id":"G8boeMc7g"}],"activity_status":true,"game_state":{}}
 ```
