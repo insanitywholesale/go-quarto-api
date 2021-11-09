@@ -20,6 +20,10 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
 */
+// Constant for Bad Request
+const BadReq string = `{"error": "bad request"}`
+// Constant for Not Found
+const NotFound string = `{"error": "not found"}`
 
 type User struct {
 	UserName string `json:"username"`
@@ -32,7 +36,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(u)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("status bad request"))
+		w.Write([]byte(BadReq))
 	}
 }
 
