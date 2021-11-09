@@ -21,12 +21,26 @@ func main() {
 }
 */
 
-func createUser(w http.ResponseWriter, r *http.Request) {}
+type User struct {
+	UserName string `json:"username"`
+	Password string `json:"password"`
+}
+
+func createUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	u := &User{}
+	err := json.NewDecoder(r.Body).Decode(u)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("status bad request"))
+	}
+}
 
 func getGameState(w http.ResponseWriter, r *http.Request) {}
+func createGame(w http.ResponseWriter, r *http.Request)     {}
 func inviteToGame(w http.ResponseWriter, r *http.Request) {}
-func joinGame(w http.ResponseWriter, r *http.Request) {}
-func playInGame(w http.ResponseWriter, r *http.Request) {}
+func joinGame(w http.ResponseWriter, r *http.Request)     {}
+func playInGame(w http.ResponseWriter, r *http.Request)   {}
 
 func main() {
 	// Set up router
@@ -37,4 +51,5 @@ func main() {
 	router.HandleFunc("/game/invite/{username}", inviteToGame)
 	router.HandleFunc("/game/{game_id}/join", joinGame)
 	router.HandleFunc("/game/{game_id}/play", playInGame)
+	log.Fatal(http.ListenAndServe(":8000", router))
 }
