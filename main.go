@@ -8,19 +8,6 @@ import (
 	"net/http"
 )
 
-// lifted from go tutorial
-/*
-func main() {
-	// Set up router
-	router := mux.NewRouter()
-	// Set up subrouter for api version 1
-	apiV1 := router.PathPrefix("/api/v1").Subrouter()
-	// Set up routes
-	apiV1.HandleFunc("/deliveries", GetAllDeliveries).Methods(http.MethodGet)
-	// Start http server
-	log.Fatal(http.ListenAndServe(":8000", router))
-}
-*/
 // Constant for Bad Request
 const BadReq string = `{"error": "bad request"}`
 
