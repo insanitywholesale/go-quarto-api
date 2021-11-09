@@ -33,8 +33,10 @@ type Game struct {
 	State          GameState `json:"game_state"`
 }
 
+//TODO: fill in with fields
 type GameState struct{}
 
+//TODO: replace with database(s)
 var testUsers []*User
 var testUserIds []*UserId
 var testPlayers []*UserId
