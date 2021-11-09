@@ -73,9 +73,9 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 	g := &Game{
 		GameId:         shortid.MustGenerate(),
 		ActivityStatus: true,
-		GameState:      nil,
+		State:      nil,
 	}
-	g.Players = append(g.Players, uid)
+	g.InvitedPlayers = append(g.Players, uid)
 	//TODO:generate player-specific game code to return
 	json.NewEncoder(w).Encode(g)
 }
