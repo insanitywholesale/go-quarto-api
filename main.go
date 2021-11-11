@@ -6,6 +6,11 @@ import (
 	"github.com/teris-io/shortid"
 	"log"
 	"net/http"
+	"os"
+)
+
+var (
+	httpPort string
 )
 
 // Constant for Bad Request
@@ -25,16 +30,23 @@ type UserId struct {
 }
 
 type Game struct {
-	GameId         string    `json:"game_id"`
+	GameId string `json:"game_id"`
 	//rethink active/inactive players thing
-	ActivePlayers        []*UserId `json:"players"`
-	InvitedPlayers        []*UserId `json:"invited_players"`
+	ActivePlayers  []*UserId `json:"players"`
+	InvitedPlayers []*UserId `json:"invited_players"`
 	ActivityStatus bool      `json:"activity_status"`
 	State          GameState `json:"game_state"`
 }
 
 //TODO: fill in with fields
 type GameState struct{}
+
+type QuartoPiece struct {
+	Dark   bool
+	Short  bool
+	Hollow bool
+	Round  bool
+}
 
 //TODO: replace with database(s)
 var testUsers []*User
@@ -56,11 +68,18 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		UserName: u.UserName,
 		UserId:   shortid.MustGenerate(),
 	}
-	//save uid to storage
+	//TODO:save uid to storage
 	json.NewEncoder(w).Encode(uid)
 }
 
-func getGameState(w http.ResponseWriter, r *http.Request) {}
+func getGameState(w http.ResponseWriter, r *http.Request) {
+	log.Println("createUser called")
+	w.Header().Set("Content-Type", "application/json")
+	gameState := &GameState{}
+	//TODO:for gamelist if game's game_id equals provided game_id
+	//assign game.State to gameState
+	json.NewEncoder(w).Encode(gameState)
+}
 
 func createGame(w http.ResponseWriter, r *http.Request) {
 	log.Println("createGame called")
@@ -92,6 +111,15 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func playInGame(w http.ResponseWriter, r *http.Request) {
+	//TODO: depends on game, will probably be quarto
+}
+
+// Function to set server HTTP port
+func setupHTTPPort() {
+	httpPort = os.Getenv("QUARTO_HTTP_PORT")
+	if httpPort == "" {
+		httpPort = "8080"
+	}
 }
 
 func main() {
@@ -109,6 +137,10 @@ func main() {
 	gameRouter.HandleFunc("/{game_id}/join", joinGame)
 	gameRouter.HandleFunc("/{game_id}/play", playInGame)
 	gameRouter.HandleFunc("/{game_id}/invite/{username}", inviteToGame)
-	log.Println("starting server at port 8000")
-	log.Fatal(http.ListenAndServe(":8000", router))
+	// Determine port to run at
+	httpPort()
+	// Print a message so there is feedback to the app admin
+	log.Println("starting server at port" + httpPort)
+	// One-liner to start the server or print error
+	log.Fatal(http.ListenAndServe(":"+httpPort, router))
 }
