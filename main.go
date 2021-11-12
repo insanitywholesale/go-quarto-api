@@ -193,12 +193,22 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getGameState(w http.ResponseWriter, r *http.Request) {
-	log.Println("createUser called")
+	log.Println("getGameState called")
 	w.Header().Set("Content-Type", "application/json")
-	gameState := &GameState{}
+	//get the path parameters
+	params := mux.Vars(r)
+	//get game_id from path param
+	gameId, _ := params["game_id"]
 	//TODO: for gamelist if game's game_id equals provided game_id
 	//assign game.State to gameState
-	json.NewEncoder(w).Encode(gameState)
+	for _, g := range testGames {
+		if g.GameId == gameId {
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(g.State)
+			return
+		}
+	}
+	//TODO: errors if game not found, user not authorized
 }
 
 func createGame(w http.ResponseWriter, r *http.Request) {
@@ -289,11 +299,11 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 	//TODO: returns in following loop
 	for _, g := range testGames {
 		if g.GameId == gameId {
-			for idx, u := range g.InactivedPlayers {
+			for _, u := range g.InvitedPlayers {
 				if uid.UserId == u.UserId {
 					//TODO: don't append if the lobby is full
 					g.ActivePlayers = append(g.ActivePlayers, u)
-					//TODO: delete from g.InactivePlayers
+					//TODO: delete from g.InvitedPlayers
 				}
 			}
 		}
