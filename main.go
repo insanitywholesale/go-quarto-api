@@ -352,7 +352,7 @@ func genRandomPiece() *QuartoPiece {
 	return qp
 }
 
-func setupRouter(port string) http.Handler {
+func setupRouter() http.Handler {
 	// Set up router
 	router := mux.NewRouter()
 	// Set up subrouter for user functions
@@ -374,7 +374,7 @@ func main() {
 	// Determine port to run at
 	httpPort := setupHTTPPort()
 	// Set up the router for the API
-	router := setupRouter(httpPort)
+	router := setupRouter()
 	// Print a message so there is feedback to the app admin
 	log.Println("starting server at port", httpPort)
 	// One-liner to start the server or print error
