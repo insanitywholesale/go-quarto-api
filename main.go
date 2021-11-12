@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	httpPort string
 	//commit date + hash vars
 )
 
@@ -334,11 +333,12 @@ func checkGameState(gameId string) {
 }
 
 // Function to set server HTTP port
-func setupHTTPPort() {
-	httpPort = os.Getenv("QUARTO_HTTP_PORT")
+func setupHTTPPort() string {
+	httpPort := os.Getenv("QUARTO_HTTP_PORT")
 	if httpPort == "" {
 		httpPort = "8000"
 	}
+	return httpPort
 }
 
 // Only for testing
@@ -352,7 +352,7 @@ func genRandomPiece() *QuartoPiece {
 	return qp
 }
 
-func main() {
+func setupRouter(port string) http.Handler {
 	// Set up router
 	router := mux.NewRouter()
 	// Set up subrouter for user functions
@@ -367,8 +367,14 @@ func main() {
 	gameRouter.HandleFunc("/{game_id}/join", joinGame)
 	gameRouter.HandleFunc("/{game_id}/play", playInGame)
 	gameRouter.HandleFunc("/{game_id}/invite/{username}", inviteToGame)
+	return router
+}
+
+func main() {
 	// Determine port to run at
-	setupHTTPPort()
+	httpPort := setupHTTPPort()
+	// Set up the router for the API
+	router := setupRouter(httpPort)
 	// Print a message so there is feedback to the app admin
 	log.Println("starting server at port", httpPort)
 	// One-liner to start the server or print error
