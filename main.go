@@ -266,7 +266,7 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 		if g.GameId == gameId {
 			g.InvitedPlayers = append(g.InvitedPlayers, uid)
 			w.WriteHeader(http.StatusOK)
-			//TODO: some success message
+			w.Write([]byte(`{"success": "player `+uid.UserName+` added to game"}`))
 			return
 		}
 	}
@@ -298,11 +298,18 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 	//TODO: returns in following loop
 	for _, g := range testGames {
 		if g.GameId == gameId {
-			for _, u := range g.InvitedPlayers {
+			for i, u := range g.InvitedPlayers {
+				if cap(g.ActivePlayers) <= len(g.ActivePlayers) {
+					w.WriteHeader(http.StatusNotFound)
+					w.Write([]byte(`{"error": "couldn't join because lobby is full"}`))
+					return
+				}
 				if uid.UserId == u.UserId {
-					//TODO: don't append if the lobby is full
-					g.ActivePlayers = append(g.ActivePlayers, u)
-					//TODO: delete from g.InvitedPlayers
+					g.ActivePlayers = append(g.ActivePlayers, uid)
+					g.InvitedPlayers = g.InvitedPlayers[:len(g.InvitedPlayers)-1]
+					w.WriteHeader(http.StatusOK)
+					w.Write([]byte(`{"success": "player `+uid.UserName+` joined the game"}`))
+					return
 				}
 			}
 		}
