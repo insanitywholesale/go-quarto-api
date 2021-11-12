@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	//commit date + hash vars
+//commit date + hash vars
 )
 
 //Variable of all Quarto pieces
