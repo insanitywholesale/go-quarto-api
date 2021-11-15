@@ -11,19 +11,21 @@ import (
 )
 
 var (
-//commit date + hash vars
+	// variables for commit hash and commit date
+	commitHash string
+	commitDate string
 )
 
-//Variable of all Quarto pieces
+// Variable of all Quarto pieces
 var AllQuartoPieces = [16]*QuartoPiece{
-	//All false
+	// All false
 	&QuartoPiece{
 		Dark:   false,
 		Short:  false,
 		Hollow: false,
 		Round:  false,
 	},
-	//One true
+	// One true
 	&QuartoPiece{
 		Dark:   true,
 		Short:  false,
@@ -48,7 +50,7 @@ var AllQuartoPieces = [16]*QuartoPiece{
 		Hollow: false,
 		Round:  true,
 	},
-	//Two true
+	// Two true
 	&QuartoPiece{
 		Dark:   true,
 		Short:  true,
@@ -85,7 +87,7 @@ var AllQuartoPieces = [16]*QuartoPiece{
 		Hollow: true,
 		Round:  true,
 	},
-	//Three true
+	// Three true
 	&QuartoPiece{
 		Dark:   false,
 		Short:  true,
@@ -110,7 +112,7 @@ var AllQuartoPieces = [16]*QuartoPiece{
 		Hollow: true,
 		Round:  false,
 	},
-	//All true
+	// All true
 	&QuartoPiece{
 		Dark:   true,
 		Short:  true,
@@ -121,10 +123,10 @@ var AllQuartoPieces = [16]*QuartoPiece{
 
 // Variable of empty game board
 var EmptyBoard = [4][4]*QuartoPiece{
-	{&QuartoPiece{},&QuartoPiece{},&QuartoPiece{},&QuartoPiece{}},
-	{&QuartoPiece{},&QuartoPiece{},&QuartoPiece{},&QuartoPiece{}},
-	{&QuartoPiece{},&QuartoPiece{},&QuartoPiece{},&QuartoPiece{}},
-	{&QuartoPiece{},&QuartoPiece{},&QuartoPiece{},&QuartoPiece{}},
+	{&QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}},
+	{&QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}},
+	{&QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}},
+	{&QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}},
 }
 
 // Constant for maximum amount of players per game
@@ -235,7 +237,7 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 		GameId:         shortid.MustGenerate(),
 		ActivityStatus: true,
 		State: &GameState{
-			Board: EmptyBoard,
+			Board:        EmptyBoard,
 			UnusedPieces: AllQuartoPieces,
 		},
 	}
