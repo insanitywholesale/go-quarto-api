@@ -362,7 +362,8 @@ func setupRouter() http.Handler {
 	// Set up routes for user API
 	userRouter.HandleFunc("/register", createUser)
 	// Set up routes for game API
-	gameRouter.HandleFunc("/new", createGame)
+	//gameRouter.HandleFunc("/new", createGame)
+	gameRouter.HandleFunc("", createGame)
 	gameRouter.HandleFunc("/{game_id}", getGameState)
 	gameRouter.HandleFunc("/{game_id}/join", joinGame)
 	gameRouter.HandleFunc("/{game_id}/play", playInGame)
