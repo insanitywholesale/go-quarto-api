@@ -267,6 +267,7 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 			g.InvitedPlayers = append(g.InvitedPlayers, uid)
 			w.WriteHeader(http.StatusOK)
 			//TODO: some success message
+			w.Write([]byte(`{"message": "success"}`))
 			return
 		}
 	}
