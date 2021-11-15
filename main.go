@@ -127,6 +127,9 @@ var EmptyBoard = [4][4]*QuartoPiece{
 	{&QuartoPiece{},&QuartoPiece{},&QuartoPiece{},&QuartoPiece{}},
 }
 
+// Constant for maximum amount of players per game
+const MaxPlayers int = 2
+
 // Constant for Bad Request
 const BadReq string = `{"error": "bad request"}`
 
@@ -300,18 +303,24 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(uid)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(BadReq))
+		//w.Write([]byte(BadReq))
+		w.Write([]byte(err.Error()))
 		return
 	}
 
 	//TODO: error messages in following loop
 	//TODO: returns in following loop
+	//TODO: unindent following loop
 	for _, g := range testGames {
 		if g.GameId == gameId {
 			for _, u := range g.InvitedPlayers {
-				if cap(g.ActivePlayers) <= len(g.ActivePlayers) {
+				if cap(g.ActivePlayers) == MaxPlayers {
 					w.WriteHeader(http.StatusNotFound)
-					w.Write([]byte(`{"error": "couldn't join because lobby is full"}`))
+					w.Write([]byte(`{"error": "couldn't join because game is full"}`))
+					return
+				} else if cap(g.ActivePlayers) == MaxPlayers {
+					w.WriteHeader(http.StatusNotFound)
+					w.Write([]byte(`{"error": "I honestly don't know how this happened"}`))
 					return
 				}
 				if uid.UserId == u.UserId {
@@ -356,7 +365,7 @@ func checkGameState(gameId string) bool {
 	}
 	board := gameState.Board
 	unusedPieces := gameState.UnusedPieces
-	log.Println(unusedPieces)
+	log.Println("unusedPieces", unusedPieces)
 	// Statically define diagonal and reverse diagonal
 	diag1 := [4]*QuartoPiece{board[0][0], board[1][1], board[2][2], board[3][3]}
 	diag2 := [4]*QuartoPiece{board[0][3], board[1][2], board[2][1], board[3][0]}
