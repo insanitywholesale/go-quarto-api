@@ -15,7 +15,7 @@ var (
 )
 
 //Variable of all Quarto pieces
-var AllQuartoPieces = []*QuartoPiece{
+var AllQuartoPieces = [16]*QuartoPiece{
 	//All false
 	&QuartoPiece{
 		Dark:   false,
@@ -119,6 +119,14 @@ var AllQuartoPieces = []*QuartoPiece{
 	},
 }
 
+// Variable of empty game board
+var EmptyBoard = [4][4]*QuartoPiece{
+	{&QuartoPiece{},&QuartoPiece{},&QuartoPiece{},&QuartoPiece{}},
+	{&QuartoPiece{},&QuartoPiece{},&QuartoPiece{},&QuartoPiece{}},
+	{&QuartoPiece{},&QuartoPiece{},&QuartoPiece{},&QuartoPiece{}},
+	{&QuartoPiece{},&QuartoPiece{},&QuartoPiece{},&QuartoPiece{}},
+}
+
 // Constant for Bad Request
 const BadReq string = `{"error": "bad request"}`
 
@@ -143,18 +151,18 @@ type UserId struct {
 
 //TODO: rethink active/inactive players thing
 type Game struct {
-	GameId         string    `json:"game_id"`
-	ActivePlayers  []*UserId `json:"players"`
-	InvitedPlayers []*UserId `json:"invited_players"`
-	PlayerTurn     *UserId   `json:"next_player"`
-	ActivityStatus bool      `json:"activity_status"`
-	State          GameState `json:"game_state"`
+	GameId         string     `json:"game_id"`
+	ActivePlayers  []*UserId  `json:"players"`
+	InvitedPlayers []*UserId  `json:"invited_players"`
+	PlayerTurn     *UserId    `json:"next_player"`
+	ActivityStatus bool       `json:"activity_status"`
+	State          *GameState `json:"game_state"`
 }
 
 //TODO: fill in with fields
 type GameState struct {
 	Board        [4][4]*QuartoPiece
-	UnusedPieces []*QuartoPiece
+	UnusedPieces [16]*QuartoPiece
 }
 
 type QuartoPiece struct {
@@ -198,8 +206,6 @@ func getGameState(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	//get game_id from path param
 	gameId, _ := params["game_id"]
-	//TODO: for gamelist if game's game_id equals provided game_id
-	//assign game.State to gameState
 	for _, g := range testGames {
 		if g.GameId == gameId {
 			w.WriteHeader(http.StatusOK)
@@ -225,6 +231,10 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 	g := &Game{
 		GameId:         shortid.MustGenerate(),
 		ActivityStatus: true,
+		State: &GameState{
+			Board: EmptyBoard,
+			UnusedPieces: AllQuartoPieces,
+		},
 	}
 	//automatically invite the game creator to the game
 	g.InvitedPlayers = append(g.InvitedPlayers, uid)
@@ -298,7 +308,7 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 	//TODO: returns in following loop
 	for _, g := range testGames {
 		if g.GameId == gameId {
-			for i, u := range g.InvitedPlayers {
+			for _, u := range g.InvitedPlayers {
 				if cap(g.ActivePlayers) <= len(g.ActivePlayers) {
 					w.WriteHeader(http.StatusNotFound)
 					w.Write([]byte(`{"error": "couldn't join because lobby is full"}`))
@@ -314,7 +324,6 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
 }
 
 func playInGame(w http.ResponseWriter, r *http.Request) {
@@ -323,20 +332,63 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 	//TODO: depends on game, will probably be quarto
 }
 
-func checkGameState(gameId string) {
-	//TODO: for gamelist if game's game_id equals provided game_id
-	//assign game.State to gameState
-	var gameState GameState
+func ifQuarto(qp [4]*QuartoPiece) bool {
+	//TODO: replace with x, y, z, w vars for readability
+	if qp[0].Dark == qp[1].Dark == qp[2].Dark == qp[3].Dark {
+		return true
+	} else if qp[0].Short == qp[1].Short == qp[2].Short == qp[3].Short {
+		return true
+	} else if qp[0].Hollow == qp[1].Hollow == qp[2].Hollow == qp[3].Hollow {
+		return true
+	} else if qp[0].Round == qp[1].Round == qp[2].Round == qp[3].Round {
+		return true
+	} else {
+		return false
+	}
+}
+
+func checkGameState(gameId string) bool {
+	var gameState *GameState
 	for _, g := range testGames {
 		if g.GameId == gameId {
 			gameState = g.State
 		}
 	}
-
 	board := gameState.Board
-	for k, v := range board {
-		log.Println(k, v)
+	unusedPieces := gameState.UnusedPieces
+	log.Println(unusedPieces)
+	diag1 := [4]*QuartoPiece{board[0][0], board[1][1], board[2][2], board[3][3]}
+	diag2 := [4]*QuartoPiece{board[0][3], board[1][2], board[2][1], board[3][0]}
+	for i, row := range board {
+		log.Println(i, row)
+		// Don't bother if 4 pieces haven't been on the board
+		if cap(unusedPieces) > 12 {
+			break
+		}
+		// Don't bother if row isn't full
+		if cap(row) < 4 {
+			break
+		}
+		if ifQuarto(row) {
+			return true
+		}
+		var col [4]*QuartoPiece
+		for j, colItem := range row {
+			log.Println(j, col)
+			log.Println(j, colItem)
+			col[j] = colItem
+		}
+		if cap(col) == 4 && ifQuarto(col) {
+			return true
+		}
+		if ifQuarto(diag1) {
+			return true
+		}
+		if ifQuarto(diag2) {
+			return true
+		}
 	}
+	return false
 }
 
 // Function to set server HTTP port
