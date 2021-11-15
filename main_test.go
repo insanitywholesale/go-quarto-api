@@ -133,7 +133,7 @@ func TestInviteAndJoin(t *testing.T) {
 	_ = json.Unmarshal(b, g)
 
 	// change URL
-	testURL = testServer.URL + "/game/"+g.GameId+"/invite/" + u.UserName
+	testURL = testServer.URL + "/game/" + g.GameId + "/invite/" + u.UserName
 	// create some data in the form of an io.Reader from a string of json
 	jsonData := []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
 	// do a simple Post request with the above data
