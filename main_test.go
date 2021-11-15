@@ -9,6 +9,8 @@ import (
 	"testing"
 )
 
+//TODO: use functions for things that are reused in tests
+
 // Test creating a user
 func TestCreateUser(t *testing.T) {
 	// run test http server

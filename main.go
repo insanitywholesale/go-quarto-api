@@ -357,8 +357,10 @@ func checkGameState(gameId string) bool {
 	board := gameState.Board
 	unusedPieces := gameState.UnusedPieces
 	log.Println(unusedPieces)
+	// Statically define diagonal and reverse diagonal
 	diag1 := [4]*QuartoPiece{board[0][0], board[1][1], board[2][2], board[3][3]}
 	diag2 := [4]*QuartoPiece{board[0][3], board[1][2], board[2][1], board[3][0]}
+	// Go through the board and check if anything qualifies as quarto
 	for i, row := range board {
 		log.Println(i, row)
 		// Don't bother if 4 pieces haven't been on the board
@@ -369,25 +371,31 @@ func checkGameState(gameId string) bool {
 		if cap(row) < 4 {
 			break
 		}
+		// Check if current row has quarto
 		if ifQuarto(row) {
 			return true
 		}
+		// Collect items from column
 		var col [4]*QuartoPiece
 		for j, colItem := range row {
 			log.Println(j, col)
 			log.Println(j, colItem)
 			col[j] = colItem
 		}
+		// Check if there are 4 pieces in the column
 		if cap(col) == 4 && ifQuarto(col) {
 			return true
 		}
-		if ifQuarto(diag1) {
+		// Check if there are 4 pieces in the diagonal
+		if cap(diag1) == 4 && ifQuarto(diag1) {
 			return true
 		}
-		if ifQuarto(diag2) {
+		// Check if there are 4 pieces in the reverse diagonal
+		if cap(diag1) == 4 && ifQuarto(diag2) {
 			return true
 		}
 	}
+	// Return false if none of the above succeeded
 	return false
 }
 
@@ -400,15 +408,14 @@ func setupHTTPPort() string {
 	return httpPort
 }
 
-// Only for testing
+// Generate a random piece
 func genRandomPiece() *QuartoPiece {
-	qp := &QuartoPiece{
+	return &QuartoPiece{
 		Dark:   randomdata.Boolean(),
 		Short:  randomdata.Boolean(),
 		Hollow: randomdata.Boolean(),
 		Round:  randomdata.Boolean(),
 	}
-	return qp
 }
 
 func setupRouter() http.Handler {
