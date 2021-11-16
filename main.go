@@ -159,7 +159,7 @@ type Game struct {
 	GameId         string     `json:"game_id"`
 	ActivePlayers  []*UserId  `json:"players"`
 	InvitedPlayers []*UserId  `json:"invited_players"`
-	PlayerTurn     *UserId    `json:"next_player"`
+	NextPlayer     *UserId    `json:"next_player"`
 	ActivityStatus bool       `json:"activity_status"`
 	State          *GameState `json:"game_state"`
 }
@@ -335,12 +335,20 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+	w.WriteHeader(http.StatusNotFound)
+	w.Write([]byte(GameNotFound))
+	return
 }
 
 func playInGame(w http.ResponseWriter, r *http.Request) {
 	log.Println("playInGame called")
 	w.Header().Set("Content-Type", "application/json")
 	//TODO: depends on game, will probably be quarto
+	for _, g := range testGames {
+		if g.GameId == gameId {
+			u := g.NextPlayer
+		}
+	}
 }
 
 func ifQuarto(qp [4]*QuartoPiece) bool {
