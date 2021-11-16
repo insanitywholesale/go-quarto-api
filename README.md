@@ -1,5 +1,4 @@
 # adise1941
-
 adise ergasia
 
 # usage
@@ -12,7 +11,7 @@ curl -X POST\
 	-H "Content-Type: application/json"\
 	-d '{"username": "inherently", "password": "verybigsecret"}'\
 	localhost:8000/user/register
-```
+
 
 returns:
 ```json
@@ -37,3 +36,11 @@ returns:
 ```json
 {"game_id":"NvFtm757g","players":[{"username":"","user_id":"G8boeMc7g"}],"activity_status":true,"game_state":{}}
 ```
+
+## invite user to game
+
+## join game
+
+## play a round in the game
+
+## see what the state of the game is
