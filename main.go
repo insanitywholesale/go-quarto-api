@@ -168,8 +168,8 @@ type Game struct {
 	GameId         string       `json:"game_id"`
 	ActivePlayers  []*UserId    `json:"players"`
 	InvitedPlayers []*UserId    `json:"invited_players"`
-	NextPlayer     *UserId      `json:"next_player"`
-	NextPiece      *QuartoPiece `json:"next_piece"`
+	NextPlayer     *UserId      `json:"next_player"` //TODO: move to GameState
+	NextPiece      *QuartoPiece `json:"next_piece"`  //TODO: move to GameState
 	ActivityStatus bool         `json:"activity_status"`
 	State          *GameState   `json:"game_state"`
 }
@@ -181,10 +181,9 @@ type GameState struct {
 }
 
 type GameMove struct {
-	//TODO: rethink Piece here compared to Game.NextPiece, maybe/possibly put in GameState
-	//Piece *QuartoPiece`json:"piece"`
-	PositionX int32 `json:"position_x"`
-	PositionY int32 `json:"position_y"`
+	PositionX int32        `json:"position_x"`
+	PositionY int32        `json:"position_y"`
+	NextPiece *QuartoPiece `json:"next_piece"`
 }
 
 type QuartoPiece struct {
@@ -377,6 +376,7 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 			}
 			// player playing next
 			player := g.NextPlayer
+			// if requesting player s not player playing next, error out
 			if player.UserId != u.UserId {
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte(Unauth))
@@ -384,6 +384,7 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 			}
 			// piece to be placed
 			var piece *QuartoPiece
+			// make sure the game's next piece has been set
 			if g.NextPiece == nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(ServerError))
@@ -399,8 +400,21 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte(BadReq))
 				return
 			}
+			g.Board[gameMove.PositionX][gameMove.PositionY] = g.NextPiece
+			// make sure the game move's next piece has been set
+			if gameMove.NextPiece == nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(ServerError))
+				return
+			} else {
+				g.NextPiece = gameMove.NextPiece
+			}
+			//TODO: check if quatro and such
 		}
 	}
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write([]byte(GameNotFound))
+	return
 }
 
 func ifQuarto(qp [4]*QuartoPiece) bool {
