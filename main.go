@@ -138,6 +138,9 @@ const BadReq string = `{"error": "bad request"}`
 // Constant for Not Found
 const NotFound string = `{"error": "not found"}`
 
+// Constant for Unauthorized
+const Unauth string = `{"error": "unauthorized"}`
+
 // Constant for User Not Found
 const UserNotFound string = `{"error": "user not found"}`
 
@@ -156,12 +159,13 @@ type UserId struct {
 
 //TODO: rethink active/inactive players thing
 type Game struct {
-	GameId         string     `json:"game_id"`
-	ActivePlayers  []*UserId  `json:"players"`
-	InvitedPlayers []*UserId  `json:"invited_players"`
-	NextPlayer     *UserId    `json:"next_player"`
-	ActivityStatus bool       `json:"activity_status"`
-	State          *GameState `json:"game_state"`
+	GameId         string       `json:"game_id"`
+	ActivePlayers  []*UserId    `json:"players"`
+	InvitedPlayers []*UserId    `json:"invited_players"`
+	NextPlayer     *UserId      `json:"next_player"`
+	NextPiece      *QuartoPiece `json:"next_piece"`
+	ActivityStatus bool         `json:"activity_status"`
+	State          *GameState   `json:"game_state"`
 }
 
 //TODO: fill in with fields
@@ -305,8 +309,7 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(uid)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		//w.Write([]byte(BadReq))
-		w.Write([]byte(err.Error()))
+		w.Write([]byte(BadReq))
 		return
 	}
 
@@ -346,7 +349,23 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 	//TODO: depends on game, will probably be quarto
 	for _, g := range testGames {
 		if g.GameId == gameId {
-			u := g.NextPlayer
+			// requesting player
+			u := &UserId{}
+			err := json.NewDecoder(r.Body).Decode(uid)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(BadReq))
+				return
+			}
+			// player playing next
+			player := g.NextPlayer
+			// piece to be placed
+			piece := g.NextPiece
+			if player.UserId != u.UserId {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte(Unauth))
+				return
+			}
 		}
 	}
 }
