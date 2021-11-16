@@ -210,13 +210,11 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	}
-	//TODO: replace with db call
 	testUsers = append(testUsers, u)
 	uid := &UserId{
 		UserName: u.UserName,
 		UserId:   shortid.MustGenerate(),
 	}
-	//TODO: replace with db call
 	testUserIds = append(testUserIds, uid)
 	json.NewEncoder(w).Encode(uid)
 }
@@ -260,9 +258,8 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 	}
 	//automatically invite the game creator to the game
 	g.InvitedPlayers = append(g.InvitedPlayers, uid)
-	//TODO: replace with db call
 	testGames = append(testGames, g)
-	//TODO: generate player-specific game code to return
+	//TODO: look into generating a player-specific game code to return
 	json.NewEncoder(w).Encode(g)
 }
 
@@ -409,14 +406,18 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 			} else {
 				g.NextPiece = gameMove.NextPiece
 			}
-			//TODO: check if quatro and such
+			//TODO: maybe return game state somewhere here
 			//TODO: deal with ActivityStatus
 			done := checkGameState(g.GameId)
 			if done {
 				g.ActivityStatus = false
+				g.Winner = u
 				w.WriteHeader(http.StatusOK)
 				w.Write([]byte(`{"message": "` + u.UserId + ` is the winner!"}`))
 				return
+			} else {
+				//change nextplayer
+				//change nextpiece
 			}
 		}
 	}
