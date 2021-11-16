@@ -141,6 +141,12 @@ const NotFound string = `{"error": "not found"}`
 // Constant for Unauthorized
 const Unauth string = `{"error": "unauthorized"}`
 
+// Constant for Unauthorized
+const ServerError string = `{"error": "internal server error"}`
+
+// Constant for success message
+const MsgSuccess string = `{"message": "success"}`
+
 // Constant for User Not Found
 const UserNotFound string = `{"error": "user not found"}`
 
@@ -170,8 +176,15 @@ type Game struct {
 
 //TODO: fill in with fields
 type GameState struct {
-	Board        [4][4]*QuartoPiece
-	UnusedPieces [16]*QuartoPiece
+	Board        [4][4]*QuartoPiece `json:"board"`
+	UnusedPieces [16]*QuartoPiece   `json:"unused_pieces"`
+}
+
+type GameMove struct {
+	//TODO: rethink Piece here compared to Game.NextPiece, maybe/possibly put in GameState
+	//Piece *QuartoPiece`json:"piece"`
+	PositionX int32 `json:"position_x"`
+	PositionY int32 `json:"position_y"`
 }
 
 type QuartoPiece struct {
@@ -285,7 +298,7 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 		if g.GameId == gameId {
 			g.InvitedPlayers = append(g.InvitedPlayers, uid)
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"message": "success"}`))
+			w.Write([]byte(MsgSuccess))
 			return
 		}
 	}
@@ -323,7 +336,7 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusNotFound)
 					w.Write([]byte(`{"error": "couldn't join because game is full"}`))
 					return
-				} else if cap(g.ActivePlayers) == MaxPlayers {
+				} else if cap(g.ActivePlayers) > MaxPlayers {
 					w.WriteHeader(http.StatusNotFound)
 					w.Write([]byte(`{"error": "I honestly don't know how this happened"}`))
 					return
@@ -332,7 +345,7 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 					g.ActivePlayers = append(g.ActivePlayers, uid)
 					g.InvitedPlayers = g.InvitedPlayers[:len(g.InvitedPlayers)-1]
 					w.WriteHeader(http.StatusOK)
-					w.Write([]byte(`{"message": "success"}`))
+					w.Write([]byte(MsgSuccess))
 					return
 				}
 			}
@@ -349,6 +362,11 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 	//TODO: depends on game, will probably be quarto
 	for _, g := range testGames {
 		if g.GameId == gameId {
+			if len(g.ActivePlayers) != 2 {
+				w.WriteHeader(http.StatusNotFound)
+				w.Write([]byte(`{"error": "need exactly 2 players to play this game"}`))
+				return
+			}
 			// requesting player
 			u := &UserId{}
 			err := json.NewDecoder(r.Body).Decode(uid)
@@ -359,11 +377,26 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 			}
 			// player playing next
 			player := g.NextPlayer
-			// piece to be placed
-			piece := g.NextPiece
 			if player.UserId != u.UserId {
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte(Unauth))
+				return
+			}
+			// piece to be placed
+			var piece *QuartoPiece
+			if g.NextPiece == nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(ServerError))
+				return
+			} else {
+				piece = g.NextPiece
+			}
+			// game move
+			gameMove := &GameMove{}
+			err := json.NewDecoder(r.Body).Decode(gameMove)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(BadReq))
 				return
 			}
 		}
@@ -429,7 +462,7 @@ func checkGameState(gameId string) bool {
 			return true
 		}
 		// Check if there are 4 pieces in the reverse diagonal
-		if cap(diag1) == 4 && ifQuarto(diag2) {
+		if cap(diag2) == 4 && ifQuarto(diag2) {
 			return true
 		}
 	}
