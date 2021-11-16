@@ -166,12 +166,13 @@ type UserId struct {
 //TODO: rethink active/inactive players thing
 type Game struct {
 	GameId         string       `json:"game_id"`
-	ActivePlayers  []*UserId    `json:"players"`
+	ActivePlayers  []*UserId    `json:"active_players"`
 	InvitedPlayers []*UserId    `json:"invited_players"`
 	NextPlayer     *UserId      `json:"next_player"` //TODO: move to GameState
 	NextPiece      *QuartoPiece `json:"next_piece"`  //TODO: move to GameState
 	ActivityStatus bool         `json:"activity_status"`
 	State          *GameState   `json:"game_state"`
+	Winner         *UserId      `json:"winner"`
 }
 
 //TODO: fill in with fields
@@ -358,7 +359,6 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 func playInGame(w http.ResponseWriter, r *http.Request) {
 	log.Println("playInGame called")
 	w.Header().Set("Content-Type", "application/json")
-	//TODO: depends on game, will probably be quarto
 	for _, g := range testGames {
 		if g.GameId == gameId {
 			if len(g.ActivePlayers) != 2 {
@@ -410,6 +410,14 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 				g.NextPiece = gameMove.NextPiece
 			}
 			//TODO: check if quatro and such
+			//TODO: deal with ActivityStatus
+			done := checkGameState(g.GameId)
+			if done {
+				g.ActivityStatus = false
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte(`{"message": "` + u.UserId + ` is the winner!"}`))
+				return
+			}
 		}
 	}
 	w.WriteHeader(http.StatusBadRequest)
