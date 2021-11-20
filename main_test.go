@@ -217,9 +217,9 @@ func TestInviteAndJoin(t *testing.T) {
 	t.Log(string(body))
 
 	// close test http server
-	//testServer.Close()
+	testServer.Close()
 }
 
-//func TestPlayInGame(t *testing.T) {
-//	t.Error("test not written")
-//}
+func TestPlayInGame(t *testing.T) {
+	t.SkipNow()
+}
