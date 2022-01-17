@@ -3,20 +3,273 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	rd "github.com/Pallinder/go-randomdata"
+	"gitlab.com/insanitywholesale/adise1941/models"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
-//TODO: use functions for things that are reused in tests
+// Test HTTP server without logging middleware
+var testServer *httptest.Server = httptest.NewServer(setupRouter(false))
+
+/*
+//TODO: fix all of this shit, nothing works properly
+*/
+
+//TODO: fix multi-inviting problem here, spews sql errors
+func TestWinInGame(t *testing.T) {
+	g, u, u2 := gameInvitation(t)
+	t.Log("inv players: ", g.InvitedPlayers[0], g.InvitedPlayers[1])
+	testURL := testServer.URL + "/game/" + g.GameId + "/join"
+
+	//user 1 join game
+	// create some data in the form of an io.Reader from a string of json
+	jsonData := []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	// save response body to check later
+	body, err := io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// log response body
+	t.Log("body", string(body))
+	// check if body has success message
+	if string(body) != MsgSuccess {
+		t.Error("inviting user 1 did not yield success message")
+	}
+
+	//user 2 join game
+	// create some data in the form of an io.Reader from a string of json
+	jsonData = []byte(`{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	// save response body to check later
+	body, err = io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// log response body
+	t.Log("body", string(body))
+	// check if body has success message
+	if string(body) != MsgSuccess {
+		t.Error("inviting user 2 did not yield success message")
+	}
+
+	//change url to play
+	testURL = testServer.URL + "/game/" + g.GameId + "/play"
+
+	//TODO: make u2 win and u not interfere
+	//user 1 play 1
+	str1 := `{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `", ` + `"position_x": 2, ` + `"position_y": 0, ` + `"next_piece": {"Id":15` + `}` + `}`
+	jsonPlayData1 := []byte(str1)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData1))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 2 play 1
+	str2 := `{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `", ` + `"position_x": 0, ` + `"position_y": 0, ` + `"next_piece": {"Id":0}` + `}`
+	jsonPlayData2 := []byte(str2)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData2))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 1 play 2
+	str1 = `{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `", ` + `"position_x": 2, ` + `"position_y": 1, ` + `"next_piece": {"Id":14` + `}` + `}`
+	jsonPlayData1 = []byte(str1)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData1))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 2 play 2
+	str2 = `{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `", ` + `"position_x": 0, ` + `"position_y": 1, ` + `"next_piece": {"Id":1}` + `}`
+	jsonPlayData2 = []byte(str2)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData2))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 1 play 3
+	str1 = `{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `", ` + `"position_x": 3, ` + `"position_y": 0, ` + `"next_piece": {"Id":13` + `}` + `}`
+	jsonPlayData1 = []byte(str1)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData1))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 2 play 3
+	str2 = `{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `", ` + `"position_x": 0, ` + `"position_y": 2, ` + `"next_piece": {"Id":2}` + `}`
+	jsonPlayData2 = []byte(str2)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData2))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 1 play 4
+	str1 = `{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `", ` + `"position_x": 3, ` + `"position_y": 1, ` + `"next_piece": {"Id":12` + `}` + `}`
+	jsonPlayData1 = []byte(str1)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData1))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	// save response body to check later
+	body, err = io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// log response body
+	t.Log("body", string(body))
+	// check if body has success message
+	winMsg := `{"message": "` + u.UserName + ` is the winner!"}`
+	if string(body) != winMsg {
+		t.Log("user 1 didn't win")
+	}
+
+	//user 2 play 4
+	str2 = `{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `", ` + `"position_x": 0, ` + `"position_y": 3, ` + `"next_piece": {"Id":6}` + `}`
+	jsonPlayData2 = []byte(str2)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData2))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	// save response body to check later
+	body, err = io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// log response body
+	t.Log("body", string(body))
+	// check if body has success message
+	winMsg = `{"message": "` + u2.UserName + ` is the winner!"}`
+	if string(body) != winMsg {
+		t.Log("user 2 didn't win")
+	}
+}
+
+// Function for creating a user for use only outside TestCreateUser
+func randomUserCreation(t *testing.T) *models.UserId {
+	// define URL
+	testURL := testServer.URL + "/user"
+	// create some data in the form of an io.Reader from a string of json
+	jsonData := []byte(`{"username": "` + rd.SillyName() + `", "password": "mypasswd"}`)
+	// do a simple Post request with the above data
+	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+	// save response body to check later
+	body, err := io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// response should contain json that can maps to the UserId type
+	u := &models.UserId{}
+	// try to unmarshal
+	err = json.Unmarshal(body, u)
+	// check for unmarshaling errors
+	if err != nil {
+		t.Error("unmarshal error:", err)
+	}
+	return u
+}
+
+// Function for creating a user for use only outside TestCreateUser
+func userCreation(t *testing.T) *models.UserId {
+	// define URL
+	testURL := testServer.URL + "/user"
+	// create some data in the form of an io.Reader from a string of json
+	jsonData := []byte(`{"username": "myself", "password": "mypasswd"}`)
+	// do a simple Post request with the above data
+	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+	// save response body to check later
+	body, err := io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// response should contain json that can maps to the UserId type
+	u := &models.UserId{}
+	// try to unmarshal
+	err = json.Unmarshal(body, u)
+	// check for unmarshaling errors
+	if err != nil {
+		t.Error("unmarshal error:", err)
+	}
+	return u
+}
 
 // Test creating a user
 func TestCreateUser(t *testing.T) {
-	// run test http server
-	testServer := httptest.NewServer(setupRouter())
 	// define URL
-	testURL := testServer.URL + "/user/register"
+	testURL := testServer.URL + "/user"
 	// create some data in the form of an io.Reader from a string of json
 	jsonData := []byte(`{"username": "myself", "password": "mypasswd"}`)
 	// do a simple Post request with the above data
@@ -41,7 +294,7 @@ func TestCreateUser(t *testing.T) {
 
 	// response should contain json that can maps to the UserId type
 	// set up empty UserId
-	u := &UserId{}
+	u := &models.UserId{}
 	// try to unmarshal
 	err = json.Unmarshal(body, u)
 	// check for unmarshaling errors
@@ -50,26 +303,63 @@ func TestCreateUser(t *testing.T) {
 	}
 	// log UserId
 	t.Log(u)
-	// close test http server
-	testServer.Close()
 }
 
-func TestCreateGame(t *testing.T) {
-	// run test http server
-	testServer := httptest.NewServer(setupRouter())
-	// define URL
-	testURL := testServer.URL + "/user/register"
-
-	// basically TestCreateUser without err checks
-	jsonUserData := []byte(`{"username": "myself", "password": "mypasswd"}`)
-	res, _ := http.Post(testURL, "application/json", bytes.NewBuffer(jsonUserData))
-	defer res.Body.Close()
-	bod, _ := io.ReadAll(res.Body)
-	u := &UserId{}
-	_ = json.Unmarshal(bod, u)
-
+// Function for creating a game for use only outside TestCreateUser
+func gameCreation(t *testing.T) *models.Game {
+	// create a user
+	u := randomUserCreation(t)
 	// change URL
-	testURL = testServer.URL + "/game"
+	testURL := testServer.URL + "/game"
+	// create some data in the form of an io.Reader from a string of json
+	jsonData := []byte(`{"user_id": "` + u.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	// save response body to check later
+	body, err := io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+
+	// response should contain json that can maps to the Game type
+	// set up empty Game
+	g := &models.Game{}
+	// try to unmarshal
+	err = json.Unmarshal(body, g)
+	// check for unmarshaling errors
+	if err != nil {
+		t.Error("unmarshal error:", err)
+	}
+	// check the amount of invited players
+	if len(g.InvitedPlayers) > 1 {
+		t.Error("more than 1 player is invited to the game")
+		t.Log(g.InvitedPlayers[0], g.InvitedPlayers[1])
+	} else if len(g.InvitedPlayers) < 1 {
+		t.Error("less than 1 player is invited to the game")
+	}
+	firstInvPlayer := g.InvitedPlayers[0].UserName
+	// first invited player should be the one we created
+	if firstInvPlayer != u.UserName {
+		t.Error("expected first invited player is not who they should be")
+	}
+	t.Log("gameCreation player 0", g.InvitedPlayers[0])
+	return g
+}
+
+// Test creating a game
+func TestCreateGame(t *testing.T) {
+	// create a user
+	u := randomUserCreation(t)
+	// change URL
+	testURL := testServer.URL + "/game"
 	// create some data in the form of an io.Reader from a string of json
 	jsonData := []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
 	// do a simple Post request with the above data
@@ -94,52 +384,168 @@ func TestCreateGame(t *testing.T) {
 
 	// response should contain json that can maps to the Game type
 	// set up empty Game
-	g := &Game{}
+	g := &models.Game{}
 	// try to unmarshal
 	err = json.Unmarshal(body, g)
 	// check for unmarshaling errors
 	if err != nil {
 		t.Error("unmarshal error:", err)
 	}
-	// log GameId
+	// log currently invited users (should only be user "myself")
+	if len(g.InvitedPlayers) > 1 {
+		t.Error("more than 1 player is invited to the game")
+	} else if len(g.InvitedPlayers) < 1 {
+		t.Error("less than 1 player is invited to the game")
+	}
+	t.Log(g.InvitedPlayers)
+	firstInvPlayer := g.InvitedPlayers[0].UserName
+	if firstInvPlayer != u.UserName {
+		t.Error("expected first invited player is not who they should be")
+	}
+
+	// log Game
 	t.Log(g)
-	// close test http server
-	testServer.Close()
 }
 
-func TestInviteAndJoin(t *testing.T) {
-	// run test http server
-	testServer := httptest.NewServer(setupRouter())
+// Function for creating a game, and inviting the game creator and one more player
+func gameInvitation(t *testing.T) (*models.Game, *models.UserId, *models.UserId) {
+	// create a game which also creates random user
+	g := gameCreation(t)
+	// alias for the first invited player aka the game creator
+	invPlayer1 := g.InvitedPlayers[0]
+	// create a second random user
+	u := randomUserCreation(t)
+	// change URL, add the name of the user to be invited
+	testURL := testServer.URL + "/game/" + g.GameId + "/invite/" + u.UserName
+	// create some data in the form of an io.Reader from a string of json
+	jsonData := []byte(`{"username": "` + invPlayer1.UserName + `", "user_id": "` + invPlayer1.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
 
-	// redo things from previous tests but without err checks
-	// define URL
-	testURL := testServer.URL + "/user/register"
-	// basically TestCreateUser without err checks
-	jsonUserData := []byte(`{"username": "myself", "password": "mypasswd"}`)
-	r, _ := http.Post(testURL, "application/json", bytes.NewBuffer(jsonUserData))
-	defer r.Body.Close()
-	b, _ := io.ReadAll(r.Body)
-	u := &UserId{}
-	_ = json.Unmarshal(b, u)
-	// basically TestCreateUser without err checks for user to be invited
-	jsonUserData = []byte(`{"username": "notme", "password": "notmypasswd"}`)
-	r, _ = http.Post(testURL, "application/json", bytes.NewBuffer(jsonUserData))
-	defer r.Body.Close()
-	b, _ = io.ReadAll(r.Body)
-	u2 := &UserId{}
-	_ = json.Unmarshal(b, u2)
-	// basically TestCreateGame without err checks
-	testURL = testServer.URL + "/game"
-	jsonGameData := []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
-	r, _ = http.Post(testURL, "application/json", bytes.NewBuffer(jsonGameData))
-	defer r.Body.Close()
-	b, _ = io.ReadAll(r.Body)
-	g := &Game{}
-	_ = json.Unmarshal(b, g)
+	// save response body to check later
+	body, err := io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// check if body has success message
+	if string(body) != MsgSuccess {
+		t.Error("gameInvitation: inviting user did not yield success message")
+	}
 
-	// test invite
-	// change URL
-	testURL = testServer.URL + "/game/" + g.GameId + "/invite/" + u2.UserName
+	t.Log("user:", u, "invited to game:", g.GameId)
+
+	// change URL to the game and its ID
+	testURL = testServer.URL + "/game/" + g.GameId
+	// do a simple Get request to see the game state
+	res, err = http.Get(testURL)
+	// check for request errors
+	if err != nil {
+		t.Error("GET error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+	// save response body to check later
+	body, err = io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// try to unmarshal
+	err = json.Unmarshal(body, g)
+	// check for unmarshaling errors
+	if err != nil {
+		t.Error("unmarshal error:", err)
+	}
+	return g, invPlayer1, u
+}
+
+func TestInviteToGame(t *testing.T) {
+	// create a game which also creates random user
+	g := gameCreation(t)
+	// alias for the first invited player aka the game creator
+	invPlayer1 := g.InvitedPlayers[0]
+	// create a second random user
+	u := randomUserCreation(t)
+	// change URL, add the name of the user to be invited
+	testURL := testServer.URL + "/game/" + g.GameId + "/invite/" + u.UserName
+	// create some data in the form of an io.Reader from a string of json
+	jsonData := []byte(`{"username": "` + invPlayer1.UserName + `", "user_id": "` + invPlayer1.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+	// log response
+	t.Log("res", res)
+
+	// save response body to check later
+	body, err := io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// log response body
+	t.Log("body", string(body))
+	// check if body has success message
+	if string(body) != MsgSuccess {
+		t.Error("inviting user did not yield success message")
+	}
+
+	// change URL to the game and its ID
+	testURL = testServer.URL + "/game/" + g.GameId
+	// do a simple Get request to see the game state
+	res, err = http.Get(testURL)
+	// check for request errors
+	if err != nil {
+		t.Error("GET error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+	// log response
+	t.Log("res", res)
+	// save response body to check later
+	body, err = io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	t.Log(string(body))
+	// try to unmarshal
+	err = json.Unmarshal(body, g)
+	// check for unmarshaling errors
+	if err != nil {
+		t.Error("unmarshal error:", err)
+	}
+
+	//TODO: replace with QuartoStorage calls
+	//if len(testGames[0].InvitedPlayers) <= 1 || cap(testGames[0].InvitedPlayers) <= 1 {
+	//	t.Error("second player wasn't added to the invitation list")
+	//} else {
+	//	t.Log("tG[0].IP[1]", testGames[0].InvitedPlayers[1])
+	//	t.Log("g.IP[0]", g.InvitedPlayers[0])
+	//	if g.GameId == testGames[0].GameId {
+	//		t.Log("same Game ID so the below shouldn't explode since tG[0].IP[1] exists")
+	//		t.Log("g.IP[1]", g.InvitedPlayers[1])
+	//	}
+	//}
+}
+
+func TestJoinGame(t *testing.T) {
+	g, u, u2 := gameInvitation(t)
+	testURL := testServer.URL + "/game/" + g.GameId + "/join"
+	t.Log(testURL)
+	t.Log(u, u2)
+	//user 1 join game
 	// create some data in the form of an io.Reader from a string of json
 	jsonData := []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
 	// do a simple Post request with the above data
@@ -151,7 +557,7 @@ func TestInviteAndJoin(t *testing.T) {
 	// be responsible and close the response some time
 	defer res.Body.Close()
 	// log response
-	t.Log(res)
+	t.Log("res", res)
 
 	// save response body to check later
 	body, err := io.ReadAll(res.Body)
@@ -160,40 +566,13 @@ func TestInviteAndJoin(t *testing.T) {
 		t.Error("resp.Body error:", err)
 	}
 	// log response body
-	t.Log(string(body))
-	// set success message
-	successMessage := `{"message": "success"}`
+	t.Log("body", string(body))
 	// check if body has success message
-	if string(body) != successMessage {
-		t.Error("inviting user did not yield success message")
+	if string(body) != MsgSuccess {
+		t.Error("inviting user 1 did not yield success message")
 	}
 
-	// test game creator join
-	// change URL
-	testURL = testServer.URL + "/game/" + g.GameId + "/join"
-	// create some data in the form of an io.Reader from a string of json
-	jsonData = []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
-	// do a simple Post request with the above data
-	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
-	// check for request errors
-	if err != nil {
-		t.Error("POST error:", err)
-	}
-	// be responsible and close the response some time
-	defer res.Body.Close()
-	// log response
-	t.Log(res)
-
-	// save response body to check later
-	body, err = io.ReadAll(res.Body)
-	// check for response body read errors
-	if err != nil {
-		t.Error("resp.Body error:", err)
-	}
-	// log response body
-	t.Log(string(body))
-
-	// test invited player join
+	//user 2 join game
 	// create some data in the form of an io.Reader from a string of json
 	jsonData = []byte(`{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `"}`)
 	// do a simple Post request with the above data
@@ -205,7 +584,7 @@ func TestInviteAndJoin(t *testing.T) {
 	// be responsible and close the response some time
 	defer res.Body.Close()
 	// log response
-	t.Log(res)
+	t.Log("res", res)
 
 	// save response body to check later
 	body, err = io.ReadAll(res.Body)
@@ -214,12 +593,88 @@ func TestInviteAndJoin(t *testing.T) {
 		t.Error("resp.Body error:", err)
 	}
 	// log response body
-	t.Log(string(body))
-
-	// close test http server
-	testServer.Close()
+	t.Log("body", string(body))
+	// check if body has success message
+	if string(body) != MsgSuccess {
+		t.Error("inviting user 2 did not yield success message")
+	}
 }
 
 func TestPlayInGame(t *testing.T) {
-	t.SkipNow()
+	g, u, u2 := gameInvitation(t)
+	testURL := testServer.URL + "/game/" + g.GameId + "/join"
+
+	//user 1 join game
+	// create some data in the form of an io.Reader from a string of json
+	jsonData := []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 2 join game
+	// create some data in the form of an io.Reader from a string of json
+	jsonData = []byte(`{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 1 play 1
+	str1 := `{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `", ` + `"position_x":` + strconv.Itoa(rd.Number(4)) + `, ` + `"position_y":` + strconv.Itoa(rd.Number(4)) + `, ` + `"next_piece": {"Id":` + strconv.Itoa(rd.Number(16)) + `}` + `}`
+	jsonPlayData1 := []byte(str1)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData1))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 2 play 1
+	str2 := `{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `", ` + `"position_x":` + strconv.Itoa(rd.Number(4)) + `, ` + `"position_y":` + strconv.Itoa(rd.Number(4)) + `, ` + `"next_piece": {"Id":` + strconv.Itoa(rd.Number(16)) + `}` + `}`
+	jsonPlayData2 := []byte(str2)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData2))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 1 play 2
+	str1 = `{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `", ` + `"position_x":` + strconv.Itoa(rd.Number(4)) + `, ` + `"position_y":` + strconv.Itoa(rd.Number(4)) + `, ` + `"next_piece": {"Id":` + strconv.Itoa(rd.Number(16)) + `}` + `}`
+	jsonPlayData1 = []byte(str1)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData1))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 2 play 2
+	str2 = `{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `", ` + `"position_x":` + strconv.Itoa(rd.Number(4)) + `, ` + `"position_y":` + strconv.Itoa(rd.Number(4)) + `, ` + `"next_piece": {"Id":` + strconv.Itoa(rd.Number(16)) + `}` + `}`
+	jsonPlayData2 = []byte(str2)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData2))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
 }
+
+*/
