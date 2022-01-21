@@ -13,6 +13,11 @@ import (
 	"os"
 )
 
+var (
+	commitHash string
+	commitDate string
+)
+
 // Constant for Bad Request
 const BadReq string = `{"error": "bad request"}`
 
@@ -41,6 +46,12 @@ const GameNotFound string = `{"error": "game not found"}`
 const MsgWelcome string = `Welcome to my Quarto API written in Go`
 
 var gamedb models.QuartoStorage
+
+func getInfo(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("commitHash: " + commitHash + "\n"))
+	w.Write([]byte("commitDate: " + commitDate + "\n"))
+	return
+}
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
@@ -448,8 +459,10 @@ func setupRouter(enableLoggingMiddleware bool) http.Handler {
 	router := mux.NewRouter()
 	var userRouter *mux.Router
 	var gameRouter *mux.Router
-	// Set up weclome message at api root
+	// Show welcome message at api root
 	router.HandleFunc("/", getRoot)
+	// Show git information
+	router.HandleFunc("/info", getInfo)
 	// Set up subrouter for user functions
 	userRouter = router.PathPrefix("/user").Subrouter()
 	// Set up subrouter for game functions
