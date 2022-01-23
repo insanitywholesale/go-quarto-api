@@ -16,6 +16,4 @@ FROM busybox as run
 
 COPY --from=build /go/bin/adise1941 /
 
-EXPOSE 8000
-
 CMD ["/adise1941"]
