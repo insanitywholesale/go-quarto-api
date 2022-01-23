@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh -xe
 
 # base URL
 BASE_URL="localhost:8000"
