@@ -88,6 +88,7 @@ func (m *MockDB) InviteUser(userid string, gameid string) error {
 		return err
 	}
 	g.InvitedPlayers = append(g.InvitedPlayers, u)
+	fmt.Println("inviting:", u.UserName, u.UserId)
 	return nil
 }
 
@@ -101,13 +102,14 @@ func (m *MockDB) JoinUser(userid string, gameid string) error {
 		return err
 	}
 	for _, ip := range g.InvitedPlayers {
+		fmt.Println(ip.UserName, ip.UserId)
 		if cap(g.ActivePlayers) == models.MaxPlayers {
 			return fmt.Errorf("couldn't join because game is full")
 		} else if cap(g.ActivePlayers) > models.MaxPlayers {
 			return fmt.Errorf("I honestly don't know how this happened")
 		} else if u.UserId == ip.UserId {
 			g.ActivePlayers = append(g.ActivePlayers, u)
-			g.InvitedPlayers = g.InvitedPlayers[:len(g.InvitedPlayers)-1]
+			//g.InvitedPlayers = g.InvitedPlayers[:len(g.InvitedPlayers)-1]
 			return nil
 		}
 	}
