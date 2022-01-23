@@ -351,7 +351,6 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func ifQuarto(qp [4]*models.QuartoPiece) bool {
-	log.Println("piece IDs of table being checked", qp[0].Id, qp[1].Id, qp[2].Id, qp[3].Id)
 	if qp[0].Dark == qp[1].Dark == qp[2].Dark == qp[3].Dark {
 		for _, p := range qp {
 			if p.Id != -1 {
@@ -394,41 +393,29 @@ func ifQuarto(qp [4]*models.QuartoPiece) bool {
 
 func checkGameState(g *models.Game) bool {
 	board := g.Board
-	unusedPieces := g.UnusedPieces
-	log.Println("unusedPieces", unusedPieces)
 	// Statically define diagonal and reverse diagonal
 	diag1 := [4]*models.QuartoPiece{board[0][0], board[1][1], board[2][2], board[3][3]}
 	diag2 := [4]*models.QuartoPiece{board[0][3], board[1][2], board[2][1], board[3][0]}
 	// Go through the board and check if anything qualifies as quarto
-	for i, row := range board {
-		log.Println("currently at row:", i)
-		// TODO: remove commented checks since nothing is nil, they have Id -1 instead
-		// Don't bother if 4 pieces haven't been on the board
-		//if cap(unusedPieces) > 12 {
-		//	break
-		//}
-		//// Don't bother if row isn't full
-		//if cap(row) < 4 {
-		//	break
-		//}
-		// Check if current row has quarto
-		if ifQuarto(row) {
-			return true
-		}
+	for _, row := range board {
 		// Collect items from column
 		var col [4]*models.QuartoPiece
 		for j, colItem := range row {
 			col[j] = colItem
 		}
-		// Check if there are 4 pieces in the column
+		// Check if row has quarto
+		if ifQuarto(row) {
+			return true
+		}
+		// Check if column has quarto
 		if ifQuarto(col) {
 			return true
 		}
-		// Check if there are 4 pieces in the diagonal
+		// Check if diagonal has quarto
 		if ifQuarto(diag1) {
 			return true
 		}
-		// Check if there are 4 pieces in the reverse diagonal
+		// Check if reverse diagonal has quarto
 		if ifQuarto(diag2) {
 			return true
 		}
@@ -454,6 +441,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// Function to set up mux router
 func setupRouter(enableLoggingMiddleware bool) http.Handler {
 	// Set up router
 	router := mux.NewRouter()
@@ -467,7 +455,6 @@ func setupRouter(enableLoggingMiddleware bool) http.Handler {
 	userRouter = router.PathPrefix("/user").Subrouter()
 	// Set up subrouter for game functions
 	gameRouter = router.PathPrefix("/game").Subrouter()
-	
 	// Set up routes for user API
 	userRouter.HandleFunc("", createUser).Methods(http.MethodPost)
 	userRouter.HandleFunc("/register", createUser).Methods(http.MethodPost) //not REST-y
