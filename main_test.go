@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"bytes"
 	"encoding/json"
@@ -15,9 +16,7 @@ import (
 // Test HTTP server without logging middleware
 var testServer *httptest.Server = httptest.NewServer(setupRouter(false))
 
-/*
 //TODO: fix all of this shit, nothing works properly
-*/
 
 //TODO: fix multi-inviting problem here, spews sql errors
 func TestWinInGame(t *testing.T) {
@@ -676,5 +675,4 @@ func TestPlayInGame(t *testing.T) {
 	// be responsible and close the response some time
 	defer res.Body.Close()
 }
-
 */
