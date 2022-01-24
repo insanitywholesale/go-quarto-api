@@ -315,7 +315,6 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	done := checkGameState(g)
-	log.Println("done status:", done)
 	if done {
 		g.ActivityStatus = false
 		g.Winner = uid
