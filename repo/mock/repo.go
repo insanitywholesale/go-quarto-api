@@ -51,6 +51,7 @@ func (m *MockDB) GetUserIdFromUserName(username string) (*models.UserId, error) 
 }
 
 func (m *MockDB) AddGame(g *models.Game) error {
+	g.NextPiece = models.AllQuartoPieces[7]
 	m.Games = append(m.Games, g)
 	return nil
 }
@@ -64,14 +65,14 @@ func (m *MockDB) GetGame(gameid string) (*models.Game, error) {
 	return nil, fmt.Errorf("game with id", gameid, "not found")
 }
 
-func (m *MockDB) ChangeGame(gameNew *models.Game, _ *models.GameMove) error {
+func (m *MockDB) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	for _, gameOld := range m.Games {
-		if gameOld.GameId == gameNew.GameId {
-			gameOld = gameNew
+		if gameOld.GameId == g.GameId {
+			gameOld.Board[gm.PositionX][gm.PositionY] = models.AllQuartoPieces[gm.NextPiece.Id]
 			return nil
 		}
 	}
-	return fmt.Errorf("game with id", gameNew.GameId, "not found")
+	return fmt.Errorf("game with id", g.GameId, "not found")
 }
 
 func (m *MockDB) GetAllGames() ([]*models.Game, error) {
@@ -88,7 +89,6 @@ func (m *MockDB) InviteUser(userid string, gameid string) error {
 		return err
 	}
 	g.InvitedPlayers = append(g.InvitedPlayers, u)
-	fmt.Println("inviting:", u.UserName, u.UserId)
 	return nil
 }
 
@@ -102,13 +102,13 @@ func (m *MockDB) JoinUser(userid string, gameid string) error {
 		return err
 	}
 	for _, ip := range g.InvitedPlayers {
-		fmt.Println(ip.UserName, ip.UserId)
 		if cap(g.ActivePlayers) == models.MaxPlayers {
 			return fmt.Errorf("couldn't join because game is full")
 		} else if cap(g.ActivePlayers) > models.MaxPlayers {
 			return fmt.Errorf("I honestly don't know how this happened")
 		} else if u.UserId == ip.UserId {
 			g.ActivePlayers = append(g.ActivePlayers, u)
+			//TODO: find better way to remove player
 			//g.InvitedPlayers = g.InvitedPlayers[:len(g.InvitedPlayers)-1]
 			return nil
 		}
