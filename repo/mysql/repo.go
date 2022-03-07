@@ -190,8 +190,8 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var np string //next player
-	var npid int  //next piece id
+	var np string  //next player
+	var npid int   //next piece id
 	var wun string //winner username
 	for rows.Next() {
 		err = rows.Scan(
@@ -207,7 +207,7 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 	}
 	//load nextpiece details from allquartopieces
 	if npid > -1 {
-	g.NextPiece = models.AllQuartoPieces[npid]
+		g.NextPiece = models.AllQuartoPieces[npid]
 	} else {
 		g.NextPiece = nil
 	}
@@ -219,11 +219,11 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 	g.NextPlayer = npuid
 	//load winner
 	if wun != "" {
-	wuid, err := r.GetUserIdFromUserName(wun)
-	if err != nil {
-		return nil, err
-	}
-	g.Winner = wuid
+		wuid, err := r.GetUserIdFromUserName(wun)
+		if err != nil {
+			return nil, err
+		}
+		g.Winner = wuid
 	}
 	//load invitedplayers
 	var ipuname string

@@ -2,15 +2,16 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-	"gitlab.com/insanitywholesale/adise1941/models"
-	"gitlab.com/insanitywholesale/adise1941/repo/mock"
-	"gitlab.com/insanitywholesale/adise1941/repo/mysql"
-	"github.com/teris-io/shortid"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"github.com/teris-io/shortid"
+	"gitlab.com/insanitywholesale/adise1941/models"
+	"gitlab.com/insanitywholesale/adise1941/repo/mock"
+	"gitlab.com/insanitywholesale/adise1941/repo/mysql"
 )
 
 var (
