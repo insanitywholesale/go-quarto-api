@@ -12,3 +12,6 @@ Handle same user being able to be added twice to stuff
 
 ## Git commit and date vars
 Add git commit and date variables to `/info` endpoint
+
+## Fix golangci-lint issues
+There are quite a lot of these
